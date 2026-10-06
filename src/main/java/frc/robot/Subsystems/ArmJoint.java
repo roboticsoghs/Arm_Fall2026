@@ -8,11 +8,15 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class ArmJoint extends SubsystemBase {
     private final TalonFX motor = new TalonFX(1);
     private TalonFXConfiguration configs = new TalonFXConfiguration();
     private final MotionMagicVoltage controlRequest = new MotionMagicVoltage(0);
+
+    private static final double MIN_ANGLE = 0.0;
+    private static final double MAX_ANGLE = 90.0;
 
     public ArmJoint() {
         configureArm();
@@ -31,9 +35,11 @@ public class ArmJoint extends SubsystemBase {
         slot0.kD = 0.0;
 
         MotionMagicConfigs mmConfigs = configs.MotionMagic;
-        mmConfigs.MotionMagicCruiseVelocity = 10.0;
-        mmConfigs.MotionMagicAcceleration = 20.0;
+        mmConfigs.MotionMagicCruiseVelocity = 1.0;
+        mmConfigs.MotionMagicAcceleration = 2.0;
         mmConfigs.MotionMagicJerk = 0.0;
+
+        configs.Feedback.SensorToMechanismRatio = Constants.ARM_MOTOR_RATIO;
 
         motor.getConfigurator().apply(configs);
     }
@@ -47,7 +53,9 @@ public class ArmJoint extends SubsystemBase {
     }
 
     public Command setArmAngle(double degrees) {
-        return this.run(() -> motor.setControl(controlRequest.withPosition(degreesToRotations(degrees))));
+        double target = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, degrees));
+
+        return this.run(() -> motor.setControl(controlRequest.withPosition(degreesToRotations(target))));
     }
 
     @Override
