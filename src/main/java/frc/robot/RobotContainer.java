@@ -25,16 +25,17 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureBindings();
+    arm.reset();
   }
 
   private void configureBindings() {
-    zeroButton.onTrue(arm.zeroEncoder());
+    // zeroButton.onTrue(arm.zeroEncoder());
 
-    armUpButton.whileTrue(arm.setArmAngle(90.0));
+    // armUpButton.whileTrue(arm.setArmAngle(90.0));
 
-    armDownButton.whileTrue(arm.setArmAngle(0.0));
+    // armDownButton.whileTrue(arm.setArmAngle(0.0));
 
-    pullPID.onTrue(arm.pullNewPID());
+    // pullPID.onTrue(arm.pullNewPID());
   }
 
   public Command getAutonomousCommand() {
