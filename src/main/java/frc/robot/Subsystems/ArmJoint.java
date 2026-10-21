@@ -2,16 +2,17 @@ package frc.robot.Subsystems;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.Telemetry;
 
@@ -23,8 +24,8 @@ public class ArmJoint extends SubsystemBase {
 
     private DigitalInput limitSwitch = new DigitalInput(0);
 
-    private static final double MIN_ANGLE = 0.0;
-    private static final double MAX_ANGLE = 90.0;
+    private static final double MIN_ANGLE = -88;
+    private static final double MAX_ANGLE = 0;
 
     public ArmJoint() {
         configureArm();
@@ -37,21 +38,22 @@ public class ArmJoint extends SubsystemBase {
         slot0.kV = 0.0; // use telemetry at 10V - V/RPS
         slot0.kA = 0.0; 
         slot0.kG = 0.223; // make arm horizontal, apply voltage till arm doesn't drop
+        slot0.GravityType = GravityTypeValue.Arm_Cosine;
         // tune PID
         slot0.kP = 40; 
-        slot0.kI = 5;
+        slot0.kI = 0;
         slot0.kD = 0.65;
 
         // weighted configs
-        Slot1Configs slot1 = configs.Slot1;
-        slot1.kS = 0.235; // voltage where arm barely moves
-        slot1.kV = 0.0; // use telemetry at 10V - V/RPS
-        slot1.kA = 0.0; 
-        slot1.kG = 0.235; // make arm horizontal, apply voltage till arm doesn't drop
-        // tune PID
-        slot1.kP = 0.0;
-        slot1.kI = 0.0;
-        slot1.kD = 0.0;
+        // Slot1Configs slot1 = configs.Slot1;
+        // slot1.kS = 0.235; // voltage where arm barely moves
+        // slot1.kV = 0.0; // use telemetry at 10V - V/RPS
+        // slot1.kA = 0.0; 
+        // slot1.kG = 0.235; // make arm horizontal, apply voltage till arm doesn't drop
+        // // tune PID
+        // slot1.kP = 0.0;
+        // slot1.kI = 0.0;
+        // slot1.kD = 0.0;
 
         // Telemetry.setupPIDTuning("arm", slot0.kP, slot0.kI, slot0.kD);
 
@@ -71,6 +73,10 @@ public class ArmJoint extends SubsystemBase {
         return targetDegrees / 360;
     }
 
+    public double getAngle() {
+        return motor.getPosition().getValueAsDouble() * 360;
+    }
+
     public Command zeroEncoder() {
         return this.runOnce(() -> motor.setPosition(0.0));
     }
@@ -78,27 +84,38 @@ public class ArmJoint extends SubsystemBase {
     public Command setArmAngle(double degrees) {
         double target = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, degrees));
 
-        return this.run(() -> motor.setControl(controlRequest.withPosition(degreesToRotations(target)).withSlot(1)));
+        return this.run(() -> motor.setControl(controlRequest.withPosition(degreesToRotations(target)).withSlot(0)));
     }
 
     public Command reset() {
-        return this.run(() -> 
-            motor.setControl(controlRequestRawVoltage.withOutput(2))
-        )
-        .until(() -> isAtPhysicalLimit())
-        .andThen(() -> motor.setControl(controlRequestRawVoltage.withOutput(0)))
-        .andThen(() -> zeroEncoder());
+        return this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(0.75)))
+            .until(() -> isAtPhysicalLimit())
+            .andThen(this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(0.40)))
+                .until(() -> !isAtPhysicalLimit())
+            )
+            .andThen(this.runOnce(() -> {
+                motor.setControl(controlRequestRawVoltage.withOutput(0));
+                motor.setPosition(0);
+            }))
+            .andThen(this.run(() -> motor.setControl(controlRequest.withPosition(0).withSlot(0))));
     }
 
-    private boolean isAtPhysicalLimit() {
+
+
+    public boolean isAtPhysicalLimit() {
         return !limitSwitch.get();
     }
 
     @Override
     public void periodic() {
-        Telemetry.putNumber("Arm", "Angle", motor.getPosition().getValueAsDouble() * 360);
+        Telemetry.putNumber("Arm", "Relative Angle", motor.getPosition().getValueAsDouble() * 360);
+        Telemetry.putNumber("Arm", "Absolute Angle", (motor.getPosition().getValueAsDouble() * 360) + 90);
         Telemetry.putNumber("Arm", "Temperature", motor.getDeviceTemp().getValueAsDouble());
 
-        Telemetry.putBoolean("Arm", "LimitSwitch", limitSwitch.get());
+        Telemetry.putBoolean("Arm", "LimitSwitch", isAtPhysicalLimit());
+
+        // if (isAtPhysicalLimit()) {
+        //     motor.setControl(controlRequest.withPosition(0));
+        // }
     }
 }

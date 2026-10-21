@@ -19,23 +19,25 @@ public class RobotContainer {
 
   // Joystick buttons
   public static final JoystickButton zeroButton = new JoystickButton(op, 1);
-  public static final JoystickButton armUpButton = new JoystickButton(op, 2);
-  public static final JoystickButton armDownButton = new JoystickButton(op, 3);
+  public static final JoystickButton arm45Button = new JoystickButton(op, 2);
+  public static final JoystickButton arm0Button = new JoystickButton(op, 3);
+  public static final JoystickButton arm90Button = new JoystickButton(op, 4);
   public static final JoystickButton pullPID = new JoystickButton(op, 4);
 
   public RobotContainer() {
     configureBindings();
-    arm.reset();
   }
 
   private void configureBindings() {
-    // zeroButton.onTrue(arm.zeroEncoder());
 
-    // armUpButton.whileTrue(arm.setArmAngle(90.0));
+    zeroButton.onTrue(arm.reset());
 
-    // armDownButton.whileTrue(arm.setArmAngle(0.0));
+    arm45Button.whileTrue(arm.setArmAngle(-45.0));
 
-    // pullPID.onTrue(arm.pullNewPID());
+    arm0Button.whileTrue(arm.setArmAngle(0.0));
+
+    arm90Button.whileTrue(arm.setArmAngle(-88));
+
   }
 
   public Command getAutonomousCommand() {
