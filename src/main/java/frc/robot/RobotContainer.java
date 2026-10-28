@@ -18,11 +18,14 @@ public class RobotContainer {
   public static final Joystick op = new Joystick(0);
 
   // Joystick buttons
+  // 1 - 10 from left to right then top to bottom, when wire is on left side
   public static final JoystickButton zeroButton = new JoystickButton(op, 1);
   public static final JoystickButton arm45Button = new JoystickButton(op, 2);
   public static final JoystickButton arm0Button = new JoystickButton(op, 3);
   public static final JoystickButton arm90Button = new JoystickButton(op, 4);
-  public static final JoystickButton pullPID = new JoystickButton(op, 4);
+
+  public static final JoystickButton armN45Button = new JoystickButton(op, 6);
+  public static final JoystickButton armN90Button = new JoystickButton(op, 7);
 
   public RobotContainer() {
     configureBindings();
@@ -36,7 +39,11 @@ public class RobotContainer {
 
     arm0Button.whileTrue(arm.setArmAngle(0.0));
 
-    arm90Button.whileTrue(arm.setArmAngle(-88));
+    arm90Button.whileTrue(arm.setArmAngle(-90));
+
+    armN45Button.whileTrue(arm.setArmAngle(-135));
+
+    armN90Button.whileTrue(arm.setArmAngle(-180));
 
   }
 

@@ -24,7 +24,7 @@ public class ArmJoint extends SubsystemBase {
 
     private DigitalInput limitSwitch = new DigitalInput(0);
 
-    private static final double MIN_ANGLE = -88;
+    private static final double MIN_ANGLE = -180;
     private static final double MAX_ANGLE = 0;
 
     public ArmJoint() {
@@ -37,12 +37,12 @@ public class ArmJoint extends SubsystemBase {
         slot0.kS = 0.23; // voltage where arm barely moves
         slot0.kV = 0.0; // use telemetry at 10V - V/RPS
         slot0.kA = 0.0; 
-        slot0.kG = 0.223; // make arm horizontal, apply voltage till arm doesn't drop
+        slot0.kG = -0.5; // make arm horizontal, apply voltage till arm doesn't drop
         slot0.GravityType = GravityTypeValue.Arm_Cosine;
         // tune PID
-        slot0.kP = 40; 
+        slot0.kP = 1600; // 1200 
         slot0.kI = 0;
-        slot0.kD = 0.65;
+        slot0.kD = 0; // 0.65
 
         // weighted configs
         // Slot1Configs slot1 = configs.Slot1;
@@ -69,24 +69,29 @@ public class ArmJoint extends SubsystemBase {
         motor.getConfigurator().apply(configs);
     }
 
+    // Degrees to rotation
     private double degreesToRotations(double targetDegrees) {
         return targetDegrees / 360;
     }
 
+    // Angle getter (degrees)
     public double getAngle() {
         return motor.getPosition().getValueAsDouble() * 360;
     }
 
+    // Zero relative encoder
     public Command zeroEncoder() {
         return this.runOnce(() -> motor.setPosition(0.0));
     }
 
+    // Set arm angle in degrees within max and min thresholds
     public Command setArmAngle(double degrees) {
         double target = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, degrees));
 
         return this.run(() -> motor.setControl(controlRequest.withPosition(degreesToRotations(target)).withSlot(0)));
     }
 
+    // Initial start up and zeroing
     public Command reset() {
         return this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(0.75)))
             .until(() -> isAtPhysicalLimit())
@@ -101,7 +106,7 @@ public class ArmJoint extends SubsystemBase {
     }
 
 
-
+    // Detect by limit switch
     public boolean isAtPhysicalLimit() {
         return !limitSwitch.get();
     }
@@ -113,6 +118,8 @@ public class ArmJoint extends SubsystemBase {
         Telemetry.putNumber("Arm", "Temperature", motor.getDeviceTemp().getValueAsDouble());
 
         Telemetry.putBoolean("Arm", "LimitSwitch", isAtPhysicalLimit());
+
+        Telemetry.putNumber("Arm", "Volts", motor.getMotorVoltage().getValueAsDouble());
 
         // if (isAtPhysicalLimit()) {
         //     motor.setControl(controlRequest.withPosition(0));

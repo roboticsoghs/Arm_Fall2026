@@ -47,12 +47,14 @@ public class Telemetry {
         telemetry.getSubTable(subtableName).getEntry(name).setValue(NetworkTableValue.makeString(color));
     };
 
+    //PID display setup
     static public void setupPIDTuning(String motor, double iP, double iI, double iD) {
         telemetry.getSubTable("Config").getEntry(motor + "-P").setDouble(iP);
         telemetry.getSubTable("Config").getEntry(motor + "-I").setDouble(iI);
         telemetry.getSubTable("Config").getEntry(motor + "-D").setDouble(iD);
     }
 
+    //PID display
     static public double[] getPIDValues(String motor) {
         double P = telemetry.getSubTable("Config").getEntry(motor + "-P").getDouble(0);
         double I = telemetry.getSubTable("Config").getEntry(motor + "-I").getDouble(0);
