@@ -9,6 +9,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableValue;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Telemetry {
@@ -47,21 +48,18 @@ public class Telemetry {
         telemetry.getSubTable(subtableName).getEntry(name).setValue(NetworkTableValue.makeString(color));
     };
 
-    //PID display setup
-    static public void setupPIDTuning(String motor, double iP, double iI, double iD) {
-        telemetry.getSubTable("Config").getEntry(motor + "-P").setDouble(iP);
-        telemetry.getSubTable("Config").getEntry(motor + "-I").setDouble(iI);
-        telemetry.getSubTable("Config").getEntry(motor + "-D").setDouble(iD);
-    }
-
-    //PID display
-    static public double[] getPIDValues(String motor) {
-        double P = telemetry.getSubTable("Config").getEntry(motor + "-P").getDouble(0);
-        double I = telemetry.getSubTable("Config").getEntry(motor + "-I").getDouble(0);
-        double D = telemetry.getSubTable("Config").getEntry(motor + "-D").getDouble(0);
-
-        double[] PID = new double[] {P, I, D};
-
-        return PID;
+    static public void flashAlert(String subtableName, String name, boolean enabled, int r, int g, int b) {
+        if (enabled) {
+            boolean isBlinkOn = (Timer.getFPGATimestamp() % 0.5) > 0.25;
+            
+            if (isBlinkOn) {
+                String color = String.format("#%02X%02X%02X", r, g, b);
+                telemetry.getSubTable(subtableName).getEntry(name).setValue(NetworkTableValue.makeString(color));
+            } else {
+                telemetry.getSubTable(subtableName).getEntry(name).setValue(NetworkTableValue.makeString("#000000"));
+            }
+        } else {
+            telemetry.getSubTable(subtableName).getEntry(name).setValue(NetworkTableValue.makeString("#000000"));
+        }
     }
 };
