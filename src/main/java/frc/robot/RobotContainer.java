@@ -20,8 +20,8 @@ public class RobotContainer {
   // Joystick buttons
   // 1 - 10 from left to right then top to bottom, when wire is on left side
   public static final JoystickButton zeroButton = new JoystickButton(op, 1);
-  public static final JoystickButton arm45Button = new JoystickButton(op, 2);
-  public static final JoystickButton arm0Button = new JoystickButton(op, 3);
+  public static final JoystickButton arm45Button = new JoystickButton(op, 3);
+  public static final JoystickButton arm0Button = new JoystickButton(op, 2);
   public static final JoystickButton arm90Button = new JoystickButton(op, 4);
 
   public static final JoystickButton armN45Button = new JoystickButton(op, 6);

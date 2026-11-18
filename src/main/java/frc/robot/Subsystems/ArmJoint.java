@@ -23,6 +23,8 @@ public class ArmJoint extends SubsystemBase {
     private final MotionMagicVoltage controlRequest = new MotionMagicVoltage(0);
     private final VoltageOut controlRequestRawVoltage = new VoltageOut(0);
 
+    private static int deltaTime = 0; // in ms
+
     private DigitalInput limitSwitch = new DigitalInput(0);
 
     private static final double MIN_ANGLE = -180;
@@ -95,34 +97,11 @@ public class ArmJoint extends SubsystemBase {
     // Initial start up and zeroing
     public Command reset() {
         return this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(-0.5)))
-            .withTimeout(0.5)
-            .unless(() -> isAtHardLimit())
+            .until(() -> isAtHardLimit())
             .andThen(() -> motor.setControl(controlRequestRawVoltage.withOutput(0)))
             .andThen(() -> {
                 zeroEncoder();
-            })
-            ;
-        // return this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(0.75)))
-        //     .until(() -> isAtZeroPoint())
-        //     .andThen(this.run(() -> motor.setControl(controlRequestRawVoltage.withOutput(0.40)))
-        //         .until(() -> !isAtZeroPoint())
-        //     )
-        //     .andThen(this.runOnce(() -> {
-        //         motor.setControl(controlRequestRawVoltage.withOutput(0));
-        //         motor.setPosition(0);
-        //     }))
-        //     .andThen(this.run(() -> motor.setControl(controlRequest.withPosition(0).withSlot(0))))
-        //     .raceWith(
-        //         Commands.run(() -> {
-        //             double current = motor.getStatorCurrent().getValueAsDouble();
-        //             double velocity = motor.getVelocity().getValueAsDouble();
-                    
-        //             if (current > 50.0 && Math.abs(velocity) < 0.12) {
-        //                 motor.setControl(new NeutralOut());
-        //                 Telemetry.flashAlert("Arm", "Stall Warn", true, 255, 0, 0);
-        //             }
-        //         })
-        //     );
+            });
     }
 
     // Detect by limit switch
@@ -131,7 +110,7 @@ public class ArmJoint extends SubsystemBase {
     }
 
     public boolean isAtHardLimit() {
-        return motor.getStatorCurrent().getValueAsDouble() > 50.0 && Math.abs(motor.getVelocity().getValueAsDouble()) > 0.8;
+        return motor.getStatorCurrent().getValueAsDouble() > 20.0 && Math.abs(motor.getVelocity().getValueAsDouble()) < 0.02;
     }
 
     @Override
@@ -141,15 +120,25 @@ public class ArmJoint extends SubsystemBase {
         Telemetry.putNumber("Arm", "Temperature", motor.getDeviceTemp().getValueAsDouble());
         Telemetry.putNumber("Arm", "Current", motor.getStatorCurrent().getValueAsDouble());
         Telemetry.putNumber("Arm", "Velocity", motor.getVelocity().getValueAsDouble());
+        Telemetry.putNumber("Arm", "Current", motor.getStatorCurrent().getValueAsDouble());
 
         Telemetry.putBoolean("Arm", "LimitSwitch", isAtZeroPoint());
 
         Telemetry.putNumber("Arm", "Volts", motor.getMotorVoltage().getValueAsDouble());
 
+        Telemetry.putBoolean("Arm", "HardLimit", isAtHardLimit());
 
-        double motor_current = motor.getStatorCurrent().getValueAsDouble();
-        double motor_velocity = motor.getVelocity().getValueAsDouble();
+        Telemetry.putNumber("Arm", "Velocity", motor.getVelocity().getValueAsDouble());
 
+
+
+        // Checks for stalling
+        // if (isAtHardLimit()) {
+        //     if (deltaTime > 1000) {
+        //         setArmAngle(0);
+        //     }
+        //     deltaTime += 20;
+        // }
         // if (isAtPhysicalLimit()) {
         //     motor.setControl(controlRequest.withPosition(0));
         // }

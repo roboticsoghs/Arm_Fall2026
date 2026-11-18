@@ -1,16 +1,9 @@
 package frc.robot;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-
-import edu.wpi.first.networktables.DoubleTopic;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Telemetry {
     static private NetworkTableInstance NT = NetworkTableInstance.getDefault();

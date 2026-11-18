@@ -54,7 +54,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    Telemetry.flashAlert("Arm", "test", true, 255, 0, 0);
+  }
 
   @Override
   public void teleopExit() {}
